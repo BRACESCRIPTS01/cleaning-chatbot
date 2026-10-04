@@ -86,7 +86,10 @@ export default async (req, context) => {
   ];
 
   const apiKey = process.env.CLEANING_GEMINI_KEY;
-  if (!apiKey) return json(FALLBACK);
+  if (!apiKey) {
+  console.error("missing CLEANING_GEMINI_KEY");
+  return json(FALLBACK);
+}
 
   try {
     const upstream = await fetch(
