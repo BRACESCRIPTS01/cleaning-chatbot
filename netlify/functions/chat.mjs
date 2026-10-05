@@ -62,7 +62,7 @@ const json = (body, status = 200) =>
     headers: { "Content-Type": "application/json", "Cache-Control": "no-store" },
   });
 
-export default async (req, context) => {
+const handler = async (req, context) => {
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   let payload;
@@ -124,11 +124,35 @@ export default async (req, context) => {
     return json(FALLBACK);
   }
 };
+ // Sites allowed to embed the widget. Add the client's domain here.
+const ALLOWED_ORIGINS = [
+  "https://cleaning-chatbot.netlify.app",
+  "https://dev--cleaning-chatbot.netlify.app",
+];
+
+const corsHeaders = (req) => {
+  const origin = req.headers.get("Origin");
+  if (!origin || !ALLOWED_ORIGINS.includes(origin)) return {};
+  return {
+    "Access-Control-Allow-Origin": origin,
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type",
+    "Vary": "Origin",
+  };
+};
+
+export default async (req, context) => {
+  const cors = corsHeaders(req);
+  if (req.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
+  const res = await handler(req, context);
+  for (const [k, v] of Object.entries(cors)) res.headers.set(k, v);
+  return res;
+};
 
 export const config = {
   path: "/api/chat",
-  method: ["POST"],
-  rateLimit: {
+  method: ["POST", "OPTIONS"],
+   rateLimit: {
     windowLimit: 20,
     windowSize: 60,
     aggregateBy: ["ip", "domain"],
