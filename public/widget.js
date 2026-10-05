@@ -1,6 +1,9 @@
 (() => {
   "use strict";
-  const API = "/api/chat";
+  const SCRIPT_ORIGIN = (document.currentScript && document.currentScript.src)
+  ? new URL(document.currentScript.src).origin   
+  : location.origin;
+const API = SCRIPT_ORIGIN + "/api/chat"; 
   const MAX_TURNS = 8;
   const FALLBACK_WA = "2340000000000";
   const history = [];
